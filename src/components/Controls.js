@@ -28,21 +28,21 @@ export class Controls {
 
     this.element.innerHTML = `
       <div class="flex items-center justify-center gap-6">
-        <button id="btn-reset" class="${secondaryBtn}" title="Reset Sequence">
+        <button id="btn-reset" class="${secondaryBtn}" data-tooltip="Reset Sequence" aria-label="Reset Sequence">
           <i data-lucide="rotate-ccw" class="w-6 h-6"></i>
         </button>
 
         ${isRunning ? `
-          <button id="btn-pause" class="${primaryBtn} w-16 h-16" title="Pause">
+          <button id="btn-pause" class="${primaryBtn} w-16 h-16" data-tooltip="Pause" aria-label="Pause">
             <i data-lucide="pause" class="w-8 h-8 fill-current"></i>
           </button>
         ` : `
-          <button id="btn-start" class="${primaryBtn} w-16 h-16" title="Start">
+          <button id="btn-start" class="${primaryBtn} w-16 h-16" data-tooltip="Start" aria-label="Start">
             <i data-lucide="play" class="w-8 h-8 fill-current pl-1"></i>
           </button>
         `}
 
-        <button id="btn-skip" class="${secondaryBtn}" title="Skip to Next">
+        <button id="btn-skip" class="${secondaryBtn}" data-tooltip="Skip to Next" aria-label="Skip to Next">
           <i data-lucide="skip-forward" class="w-6 h-6"></i>
         </button>
       </div>

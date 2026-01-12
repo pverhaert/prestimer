@@ -83,7 +83,7 @@ export class TimerQueue {
                 </div>
               </div>
               
-              <button data-id="${timer.id}" class="delete-btn p-2 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-md transition-colors flex-shrink-0" title="Remove Timer">
+              <button data-id="${timer.id}" class="delete-btn p-2 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-md transition-colors flex-shrink-0" data-tooltip="Remove Timer" aria-label="Remove Timer">
                 <i data-lucide="trash-2" class="w-4 h-4"></i>
               </button>
             </div>

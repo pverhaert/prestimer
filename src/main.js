@@ -9,6 +9,7 @@ import { TimerQueue } from './components/TimerQueue.js';
 import { Controls } from './components/Controls.js';
 import { Modal } from './components/Modal.js';
 import { SettingsModal } from './components/SettingsModal.js';
+import { Tooltip } from './components/Tooltip.js';
 
 // --- Initialization ---
 
@@ -39,6 +40,7 @@ if (savedQueue && savedQueue.length > 0) {
 }
 
 // Components
+const tooltip = new Tooltip();
 const modal = new Modal(document.querySelector('#modal-root'));
 const timerDisplay = new TimerDisplay(document.querySelector('#timer-display-container'));
 
