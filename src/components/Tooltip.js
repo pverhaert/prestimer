@@ -21,7 +21,11 @@ export class Tooltip {
     addListeners() {
         let showTimeout;
 
+        // Listener for hover-capable devices only
         document.body.addEventListener('mouseenter', (e) => {
+            // Check if device supports hover
+            if (!window.matchMedia('(hover: hover)').matches) return;
+
             const target = e.target.closest('[data-tooltip]');
             if (!target) return;
 
@@ -48,6 +52,9 @@ export class Tooltip {
 
         // Also handle focus/blur for accessibility (keyboard users) - though standard tooltips don't always appear on focus, nice ones do
         document.body.addEventListener('focusin', (e) => {
+            // Avoid focus tooltips on mobile (touch devices often trigger focus on tap)
+            if (!window.matchMedia('(hover: hover)').matches) return;
+
             const target = e.target.closest('[data-tooltip]');
             if (target) {
                 this.show(target, target.getAttribute('data-tooltip'));
