@@ -138,7 +138,8 @@ export class TimeChain {
         if (node !== this.activeNode) return;
 
         if (node.next) {
-            this.audioService.playTransition();
+            // Pass next timer's label for TTS
+            this.audioService.playTransition(node.next.timer.label);
             this.activeNode = node.next;
             this.activeNode.timer.start();
         } else {

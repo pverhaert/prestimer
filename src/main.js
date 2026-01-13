@@ -1,5 +1,5 @@
 import './index.css';
-import { createIcons, Timer, RotateCcw, Play, Pause, SkipForward, Trash2, Settings2, Plus, Moon, Sun, Volume2, VolumeX, AlertTriangle } from 'lucide';
+import { createIcons, Timer, RotateCcw, Play, Pause, SkipForward, Trash2, Settings2, Plus, Moon, Sun, Volume2, VolumeX, AlertTriangle, Mic } from 'lucide';
 import { TimeChain } from './core/TimeChain.js';
 import { Timer as TimerModel } from './core/Timer.js';
 import { AudioService } from './services/AudioService.js';
@@ -19,12 +19,21 @@ const timeChain = new TimeChain(audioService);
 
 // Load Settings
 const savedSettings = StorageService.loadSettings();
+
+// Apply Audio Settings
 if (savedSettings.muted) audioService.muted = true;
+if (savedSettings.voiceEnabled) audioService.setVoiceEnabled(true);
+
 // Apply Theme
 if (savedSettings.theme === 'light') {
   document.documentElement.classList.remove('dark');
 } else {
   document.documentElement.classList.add('dark');
+}
+
+// Ensure voice is set once voices are loaded (handled by AudioService internal init but we set preference)
+if (savedSettings.selectedVoice) {
+  audioService.setVoice(savedSettings.selectedVoice);
 }
 
 // Load Queue
@@ -72,7 +81,13 @@ const timerQueue = new TimerQueue(
 const controls = new Controls(document.querySelector('#controls-container'), {
   onStart: async () => {
     await audioService.resumeContext();
+    const activeLabel = timeChain.activeNode ? timeChain.activeNode.timer.label : null;
     timeChain.start();
+    // Speak start if enabled
+    if (activeLabel) {
+      audioService.playStart(activeLabel);
+    }
+
     controls.updateState('RUNNING');
     refreshIcons();
     updateTimerDisplayOnly();
@@ -117,7 +132,7 @@ function saveData() {
 function refreshIcons() {
   try {
     createIcons({
-      icons: { Timer, RotateCcw, Play, Pause, SkipForward, Trash2, Settings2, Plus, Moon, Sun, Volume2, VolumeX, AlertTriangle }
+      icons: { Timer, RotateCcw, Play, Pause, SkipForward, Trash2, Settings2, Plus, Moon, Sun, Volume2, VolumeX, AlertTriangle, Mic }
     });
   } catch (e) {
     // ignore
@@ -126,6 +141,9 @@ function refreshIcons() {
 
 // Warning overlay element
 const warningOverlay = document.getElementById('warning-overlay');
+
+// State to prevent repeating warning
+let warningSpoken = false;
 
 // Only update the timer display (called on every tick)
 function updateTimerDisplayOnly() {
@@ -143,14 +161,32 @@ function updateTimerDisplayOnly() {
     const warningSeconds = savedSettings.warningSeconds || 5;
     const remainingSeconds = Math.ceil(currentTimer.remaining / 1000);
 
-    if (currentTimer.state === 'RUNNING' && remainingSeconds <= warningSeconds && remainingSeconds > 0) {
-      warningOverlay.classList.add('warning-active');
+    if (currentTimer.state === 'RUNNING') {
+      // Overlay
+      if (remainingSeconds <= warningSeconds && remainingSeconds > 0) {
+        warningOverlay.classList.add('warning-active');
+      } else {
+        warningOverlay.classList.remove('warning-active');
+      }
+
+      // Voice Warning
+      if (remainingSeconds === warningSeconds && !warningSpoken && remainingSeconds > 0) {
+        warningSpoken = true;
+        audioService.playWarning(`${warningSeconds} seconds remaining`);
+      }
     } else {
       warningOverlay.classList.remove('warning-active');
     }
+
+    // Reset warning flag if redundant (e.g. paused or reset)
+    if (currentTimer.state !== 'RUNNING' || remainingSeconds > warningSeconds) {
+      warningSpoken = false;
+    }
+
   } else {
     timerDisplay.update({ remaining: 0, label: 'Finished', state: 'COMPLETED' });
     warningOverlay.classList.remove('warning-active');
+    warningSpoken = false;
   }
 }
 
@@ -204,7 +240,11 @@ if (btnSettings) {
       savedSettings,
       (key, value) => {
         savedSettings[key] = value;
+
         if (key === 'muted') audioService.muted = value;
+        if (key === 'voiceEnabled') audioService.setVoiceEnabled(value);
+        if (key === 'selectedVoice') audioService.setVoice(value);
+
         if (key === 'theme') {
           if (value === 'dark') document.documentElement.classList.add('dark');
           else document.documentElement.classList.remove('dark');
@@ -212,7 +252,8 @@ if (btnSettings) {
         StorageService.saveSettings(savedSettings);
         setTimeout(() => refreshIcons(), 0);
       },
-      () => modal.close()
+      () => modal.close(),
+      audioService // Pass service to modal for voice list
     ), () => { });
 
     setTimeout(() => refreshIcons(), 0);
