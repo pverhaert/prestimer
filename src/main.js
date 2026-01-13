@@ -139,6 +139,9 @@ function refreshIcons() {
   }
 }
 
+// Flash overlay element
+const flashOverlay = document.getElementById('flash-overlay');
+
 // Warning overlay element
 const warningOverlay = document.getElementById('warning-overlay');
 
@@ -162,20 +165,28 @@ function updateTimerDisplayOnly() {
     const remainingSeconds = Math.ceil(currentTimer.remaining / 1000);
 
     if (currentTimer.state === 'RUNNING') {
-      // Overlay
+      // Overlay (Red Pulse)
       if (remainingSeconds <= warningSeconds && remainingSeconds > 0) {
         warningOverlay.classList.add('warning-active');
       } else {
         warningOverlay.classList.remove('warning-active');
       }
 
-      // Voice Warning
+      // Voice Warning + Yellow Flash
       if (remainingSeconds === warningSeconds && !warningSpoken && remainingSeconds > 0) {
         warningSpoken = true;
         audioService.playWarning(`${warningSeconds} seconds remaining`);
+
+        // Trigger yellow flash on dedicated overlay
+        flashOverlay.classList.add('flash-warning');
+        // Remove class after animation (1s) to allow re-triggering
+        setTimeout(() => {
+          flashOverlay.classList.remove('flash-warning');
+        }, 1000);
       }
     } else {
       warningOverlay.classList.remove('warning-active');
+      flashOverlay.classList.remove('flash-warning');
     }
 
     // Reset warning flag if redundant (e.g. paused or reset)

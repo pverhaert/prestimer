@@ -46,3 +46,26 @@ body {
     transform: scale(1.02);
   }
 }
+
+/* Yellow flash for warning time */
+@keyframes screen-flash-yellow {
+  0% {
+    background-color: rgba(255, 234, 0, 0);
+  }
+
+  50% {
+    background-color: rgba(255, 234, 0, 0.4);
+  }
+
+  100% {
+    background-color: rgba(255, 234, 0, 0);
+  }
+}
+
+#flash-overlay {
+  background-color: transparent;
+}
+
+#flash-overlay.flash-warning {
+  animation: screen-flash-yellow 1s ease-in-out;
+}
