@@ -19,6 +19,7 @@ export class TimeChain {
         this.activeNode = null;
         this.audioService = audioService;
         this.count = 0;
+        this.isChainCompleted = false; // Flag to track if all timers finished
     }
 
     /**
@@ -83,8 +84,14 @@ export class TimeChain {
 
     /**
      * Starts the current active timer.
+     * If chain is completed, auto-reset and start from beginning.
      */
     start() {
+        // If chain was completed, auto-reset and restart
+        if (this.isChainCompleted) {
+            this.resetAll();
+        }
+
         if (this.activeNode) {
             this.activeNode.timer.start();
         }
@@ -131,6 +138,7 @@ export class TimeChain {
             current = current.next;
         }
         this.activeNode = this.head;
+        this.isChainCompleted = false; // Clear completion flag
     }
 
     onTimerComplete(node) {
@@ -143,6 +151,8 @@ export class TimeChain {
             this.activeNode = node.next;
             this.activeNode.timer.start();
         } else {
+            // Last timer completed - mark chain as finished
+            this.isChainCompleted = true;
             this.audioService.playCompletion();
         }
     }

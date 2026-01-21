@@ -81,6 +81,13 @@ const timerQueue = new TimerQueue(
 const controls = new Controls(document.querySelector('#controls-container'), {
   onStart: async () => {
     await audioService.resumeContext();
+
+    // Check if we're restarting after completion
+    const wasCompleted = timeChain.isChainCompleted;
+
+    // Clear warning overlay in case we're restarting after completion
+    warningOverlay.classList.remove('warning-active');
+
     const activeLabel = timeChain.activeNode ? timeChain.activeNode.timer.label : null;
     timeChain.start();
     // Speak start if enabled
@@ -90,7 +97,13 @@ const controls = new Controls(document.querySelector('#controls-container'), {
 
     controls.updateState('RUNNING');
     refreshIcons();
-    updateTimerDisplayOnly();
+
+    // If we restarted after completion, update full UI to highlight first timer
+    if (wasCompleted) {
+      updateFullUI();
+    } else {
+      updateTimerDisplayOnly();
+    }
   },
   onPause: () => {
     timeChain.pause();
@@ -103,6 +116,7 @@ const controls = new Controls(document.querySelector('#controls-container'), {
     updateFullUI();
   },
   onReset: () => {
+    warningOverlay.classList.remove('warning-active');
     timeChain.resetAll();
     updateFullUI();
   }
@@ -185,7 +199,13 @@ function updateTimerDisplayOnly() {
         }, 1000);
       }
     } else {
-      warningOverlay.classList.remove('warning-active');
+      // Timer not running (PAUSED, COMPLETED, etc.)
+      // Keep warning overlay if chain is completed (last timer finished)
+      if (timeChain.isChainCompleted) {
+        warningOverlay.classList.add('warning-active');
+      } else {
+        warningOverlay.classList.remove('warning-active');
+      }
       flashOverlay.classList.remove('flash-warning');
     }
 
@@ -195,8 +215,12 @@ function updateTimerDisplayOnly() {
     }
 
   } else {
+    // Chain completed - keep warning overlay to show "finished" state persistently
     timerDisplay.update({ remaining: 0, label: 'Finished', state: 'COMPLETED' });
-    warningOverlay.classList.remove('warning-active');
+    // Keep warning overlay active when chain is completed
+    if (timeChain.isChainCompleted) {
+      warningOverlay.classList.add('warning-active');
+    }
     warningSpoken = false;
   }
 }
